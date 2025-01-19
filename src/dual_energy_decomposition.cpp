@@ -101,6 +101,8 @@ bool dualEnergyDecomposition::generateDEDlookUpTables(float* spectralResponses_i
 	for (int i = 0; i < N_gamma; i++)
 	{
 		d_L[i] = spectralResponses_in[i];
+		//if (i == N_gamma - 2)
+		//	d_L[i] = 0.0;
 		accum_L += d_L[i] * T_gamma(i);
 
 		d_H[i] = spectralResponses_in[N_gamma+i];
@@ -143,6 +145,19 @@ bool dualEnergyDecomposition::generateDEDlookUpTables(float* spectralResponses_i
 		//printf("%f: %f, %f\n", gammas[i], b_L[i], b_H[i]);
 	}
 
+	//d_L[N_gamma - 2] = 0.0;
+
+	/* TESTING
+	double g_L = 6.0;
+	double g_H = 4.0;
+	double g_init_L = g_L;
+	double g_init_H = g_H;
+	double g_mono_L, g_mono_H, theError;
+	decompose(g_L, g_H, g_init_L, g_init_H, g_mono_L, g_mono_H, theError);
+	printf("(%f, %f) -> (%f, %f), error = %f\n", g_L, g_H, g_mono_L, g_mono_H, theError);
+	exit(1);
+	//*/
+
 	// Build DED LUT
 	#ifdef USE_OPENMP
 	omp_set_num_threads(omp_get_num_procs());
@@ -166,10 +181,12 @@ bool dualEnergyDecomposition::generateDEDlookUpTables(float* spectralResponses_i
 
 				double g_init_L = LUT_L[j - 1];
 				double g_init_H = LUT_H[j - 1];
-				if (g_init_L == 0.0)
+				if (g_init_L == 0.0 || LUT_error[j - 1] > 0.0001)
 					g_init_L = g_L;
-				if (g_init_H == 0.0)
+				if (g_init_H == 0.0 || LUT_error[j - 1] > 0.0001)
 					g_init_H = g_H;
+				//g_init_L = g_L;
+				//g_init_H = g_H;
 
 				double g_mono_L, g_mono_H, theError;
 				decompose(g_L, g_H, g_init_L, g_init_H, g_mono_L, g_mono_H, theError);
@@ -336,6 +353,7 @@ bool dualEnergyDecomposition::decompose(double g_L, double g_H, double g_init_L,
 			// Accept or reject new solution?
 			double* polyTrans_new = calcPolyTrans(g_new);
 			newError = dualEnergyDecomposition_cost(g_meas, g_new, polyTrans_new);
+			//printf("(%f, %f): %f\n", g_new[0], g_new[1], newError);
 			if (newError < curError)
 			{
 				g[0] = g_new[0];
