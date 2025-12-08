@@ -5,8 +5,6 @@
 #pragma once
 #endif
 
-#define XRAY_PHYSICS_VERSION "1.2"
-
 #include "xsec.h"
 #include "xscatter.h"
 #include "xsource.h"
