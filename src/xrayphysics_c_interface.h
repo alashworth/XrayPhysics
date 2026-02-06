@@ -1,14 +1,4 @@
-#ifdef WIN32
-    #pragma once
-
-    #ifdef PROJECTOR_EXPORTS
-        #define XRAYPHYSICS_API __declspec(dllexport)
-    #else
-        #define XRAYPHYSICS_API __declspec(dllimport)
-    #endif
-#else
-    #define XRAYPHYSICS_API
-#endif
+#include "xrayphysics_export.h"
 
 extern "C" XRAYPHYSICS_API void about();
 

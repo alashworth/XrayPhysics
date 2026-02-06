@@ -1,7 +1,7 @@
 import ctypes
 import os
 import sys
-from sys import platform as _platform
+from pathlib import Path
 from numpy.ctypeslib import ndpointer
 import numpy as np
 
@@ -14,71 +14,17 @@ class xrayPhysics:
     ...
     """
 
-    def __init__(self, lib_dir=""):
-        if len(lib_dir) > 0:
-            current_dir = lib_dir
+    def __init__(self):
+        if os.name == 'nt':
+            dll_path = Path(sys.prefix) / 'Library' / 'bin' / 'libxrayphysics.dll'
         else:
-            current_dir = os.path.abspath(os.path.dirname(__file__))
+            ext = '.dylib' if sys.platform == 'darwin' else '.so'
+            dll_path = Path(sys.prefix) / 'lib' / f'libxrayphysics{ext}'
 
-        if _platform == "linux" or _platform == "linux2":
-            import readline
-            from ctypes import cdll
-            
-            fullPath = os.path.join(current_dir, 'libxrayphysics.so')
-            fullPath_backup = os.path.join(current_dir, '../build/lib/libxrayphysics.so')
-            
-            if os.path.isfile(fullPath):
-                self.libxrayphysics = cdll.LoadLibrary(fullPath)
-            elif os.path.isfile(fullPath_backup):
-                self.libxrayphysics = cdll.LoadLibrary(fullPath_backup)
-            else:
-                print('Error: could not find XrayPhysics dynamic library at')
-                print(fullPath)
-                print('or')
-                print(fullPath_backup)
-                self.libxrayphysics = None
-            
-        elif _platform == "win32":
-            from ctypes import windll
-        
-            fullPath = os.path.join(current_dir, 'libxrayphysics.dll')
-            fullPath_backup = os.path.join(current_dir, r'..\win_build\bin\Release\libxrayphysics.dll')
-        
-            if os.path.isfile(fullPath):
-                try:
-                    self.libxrayphysics = windll.LoadLibrary(fullPath)
-                except:
-                    self.libxrayphysics = ctypes.CDLL(fullPath, winmode=0)
-            elif os.path.isfile(fullPath_backup):
-                try:
-                    self.libxrayphysics = windll.LoadLibrary(fullPath_backup)
-                except:
-                    self.libxrayphysics = ctypes.CDLL(fullPath_backup, winmode=0)
-            else:
-                print('Error: could not find XrayPhysics dynamic library at')
-                print(fullPath)
-                print('or')
-                print(fullPath_backup)
-                self.libxrayphysics = None
-        
-        elif _platform == "darwin":  # Darwin is the name for MacOS in Python's platform module
-            # there is current no support for XrayPhysics on Mac, but maybe someone can figure this out
-            from ctypes import cdll
-            
-            fullPath = os.path.join(current_dir, 'libxrayphysics.dylib')
-            fullPath_backup = os.path.join(current_dir, '../build/lib/libxrayphysics.dylib')
-            
-            if os.path.isfile(fullPath):
-                self.libxrayphysics = cdll.LoadLibrary(fullPath)
-            elif os.path.isfile(fullPath_backup):
-                self.libxrayphysics = cdll.LoadLibrary(fullPath_backup)
-            else:
-                print('Error: could not find XrayPhysics dynamic library at')
-                print(fullPath)
-                print('or')
-                print(fullPath_backup)
-                self.libxrayphysics = None
-            
+        assert dll_path.exists()
+        # Load the library using the absolute path
+        self.libxrayphysics = ctypes.CDLL(str(dll_path))
+
         self.detectorBits = 16
         self.length_units = 'cm'
 

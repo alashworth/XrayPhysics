@@ -1,0 +1,51 @@
+context:
+  version: 1.2.1
+
+package:
+  name: xrayphysics
+  version: ${{ version }}
+
+source:
+  path: .
+  use_gitignore: true
+  
+build:
+  number: 0
+  script:
+    - if: win
+      then: |
+        cmake %CMAKE_ARGS% ^
+        -GNinja ^
+        -DCMAKE_BUILD_TYPE=Release ^
+        -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ^
+        -DBUILD_SHARED_LIBS=ON ^
+        -DPYTHON_MODULE_INSTALL_DIR="%SP_DIR%" ^
+        -B "%SRC_DIR%\..\build" ^
+        -S .
+        cmake --build "%SRC_DIR%\..\build" --target install
+      else: |
+        cmake $CMAKE_ARGS \
+        -GNinja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=$PREFIX \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+        -DBUILD_SHARED_LIBS=ON \
+        -DPYTHON_MODULE_INSTALL_DIR=$SP_DIR \
+        -B $SRC_DIR/../build \
+        -S .
+        cmake --build $SRC_DIR/../build --target install
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - cmake
+    - ninja
+  host:
+    - python
+    - numpy
+
+tests:
+  - python:
+      imports:
+        - xrayphysics
